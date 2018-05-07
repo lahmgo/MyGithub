@@ -1,0 +1,61 @@
+
+
+简单来说zip操作符就是合并多个数据流，
+然后发送(Emit)最终合并和的数据流。
+
+zip操作符实际案例
+需求描述：
+
+在很多app种都会有图片上传的功能，比如商品的评价，客户端允许用户拍照上传(可能多张)，把图片上传到又拍云(现在很多中小型公司都是用又拍云作为图片服务器)，然后获取图片的url，再把图片的信息（图片url，图片大小）发送给图片。
+主要逻辑：
+
+1,先把所有的图片上传到又拍云完（比如3张图片）
+
+2,获取图片的url路径，图片大小等
+
+3,最后把数据全部提交给服务器
+
+        //需要上传的图片
+        Picture[] ps = xxx;
+        Observable.zip(
+                Observable.from(ps),
+                getUpYunAddress(ps.length),//获取上传的url
+                new Func2<Picture, UpYunAddress, Picture>() {
+                    @Override
+                    public Picture call(Picture picture, UpYunAddress upYunAddress) {
+                        //如果该图片已经上传则不应该上传
+                        if (TextUtils.isEmpty(picture.getSource())) {
+                            try {
+                                //使用又拍云提供的工具类，上传图片
+                                String path = UpYunUtil.uploadImage(upYunAddress, picture.getLocalUrl());
+                                //获取最终的url
+                                String finalUrl = upYunAddress.getPrefix() + path;
+                                picture.setSource(finalUrl);
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        return picture;
+                    }
+                })
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                //上传成功后获取图片大小
+                .flatMap(new Func1<Picture, Observable<Picture>>() {
+                    @Override
+                    public Observable<Picture> call(Picture picture) {
+                        if (TextUtils.isEmpty(picture.getHeight()) || TextUtils.isEmpty(picture.getWidth())) {
+                            BitmapFactory.Options options;
+                            if (!TextUtils.isEmpty(picture.getLocalUrl())) {
+                                options = ImageUtil.getBitmapOptions(picture.getLocalUrl());
+                                picture.setLocalUrl(null);
+                            } else {
+                                options = ImageUtil.getBitmapOptions(picture.getSource());
+                            }
+                            picture.setWidth(String.valueOf(options.outWidth));
+                            picture.setHeight(String.valueOf(options.outHeight));
+                        }
+                        return Observable.just(picture);
+                    }
+                });
+                //最后处理最终的数据。

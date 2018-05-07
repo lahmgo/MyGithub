@@ -1,0 +1,12 @@
+
+
+
+
+RxJavaObservableExecutionHook
+这个插件让你可以注册一个函数用于记录日志或者性能数据收集，RxJava在某些常规活动时会调用它。要做到这一点，需要继承 RxJavaObservableExecutionHook 类并覆写这些方法：
+
+
+https://mcxiaoke.gitbooks.io/rxdocs/content/topics/Plugins.html
+
+
+

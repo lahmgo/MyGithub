@@ -1,0 +1,68 @@
+
+
+
+AndroidSchedulers.mainThread()
+Schedulers.computation( )	用于计算任务，如事件循环或和回调处理，不要用于IO操作(IO操作请使用Schedulers.io())；默认线程数等于处理器的数量
+Schedulers.from(executor)	使用指定的Executor作为调度器
+Schedulers.immediate( )	在当前线程立即开始执行任务
+Schedulers.io( )	用于IO密集型任务，如异步阻塞IO操作，这个调度器的线程池会根据需要增长；对于普通的计算任务，请使用Schedulers.computation()；Schedulers.io( )默认是一个CachedThreadScheduler，很像一个有线程缓存的新线程调度器
+Schedulers.newThread( )	为每个任务创建一个新线程
+Schedulers.trampoline( )	当其它排队的任务完成后，在当前线程排队开始执行
+
+
+Observable.from("one", "two", "three", "four", "five")
+            .subscribeOn(Schedulers.newThread())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe(/* an Observer */);
+
+
+
+也可以用它们调度你自己的任务。下面的示例展示了Scheduler.Worker的用法：
+
+
+worker = Schedulers.newThread().createWorker();
+worker.schedule(new Action0() {
+
+    @Override
+    public void call() {
+        yourWork();
+    }
+
+});
+// some time later...
+worker.unsubscribe();
+递归调度器
+要调度递归的方法调用，你可以使用schedule，然后再用schedule(this)，示例：
+
+
+worker = Schedulers.newThread().createWorker();
+worker.schedule(new Action0() {
+
+    @Override
+    public void call() {
+        yourWork();
+        // recurse until unsubscribed (schedule will do nothing if unsubscribed)
+        worker.schedule(this);
+    }
+
+});
+// some time later...
+worker.unsubscribe();
+检查或设置取消订阅状态
+Worker类的对象实现了Subscription接口，使用它的isUnsubscribed和unsubscribe方法，所以你可以在订阅取消时停止任务，或者从正在调度的任务内部取消订阅，示例：
+
+
+Worker worker = Schedulers.newThread().createWorker();
+Subscription mySubscription = worker.schedule(new Action0() {
+
+    @Override
+    public void call() {
+        while(!worker.isUnsubscribed()) {
+            status = yourWork();
+            if(QUIT == status) { worker.unsubscribe(); }
+        }
+    }
+
+});
+Worker同时是Subscription，因此你可以（通常也应该）调用它的unsubscribe方法通知可以挂起任务和释放资源了。
+
