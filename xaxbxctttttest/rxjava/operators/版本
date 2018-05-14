@@ -1,0 +1,13 @@
+
+
+
+RxJava1.x 版本就有了Observable.Transformer、Single.Transformer和Completable.Transformer
+
+
+RxJava2 将Observable拆分成 Observable 和 Flowable
+在2.x版本中变成了ObservableTransformer、SingleTransformer、CompletableTransformer、FlowableTransformer和MaybeTransformer。
+    其中，FlowableTransformer和MaybeTransformer是新增的。由于 ，所以多了一个FlowableTransformer。同时，Maybe是 RxJava2 新增的一个类型，所以多了MaybeTransformer。
+
+
+
+

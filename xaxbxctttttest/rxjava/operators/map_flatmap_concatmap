@@ -1,0 +1,18 @@
+
+
+map
+    对原数据源的数据进行的一种操作，不生成Obserable
+
+
+flatmap
+    生成Obserable, 数据源会发生改变
+    数据并发执行；不保证结果的顺序跟数据源顺序相同
+
+
+concatmap
+    既要是多个线程完成任务，又要保持任务的顺序
+    数据并发执行；同时保证结果的顺序跟数据源顺序相同
+
+
+
+实验结果表明：如果RxJava有了多个线程，concatMap才会使用多个线程，如果Rxjava里只有一个缓存的线程，concatMap只是用一个线程来执行任务，尽管加上了.subscribeOn(Schedulers.io())代码。然而如果是flatMap加上.subscribeOn(Schedulers.io())代码，每次调用都是多个线程的。这也是flatMap和concatMap的又一个区别

@@ -20,3 +20,46 @@ https://mcxiaoke.gitbooks.io/rxdocs/content/
 转换操作 To
 连接操作 Connect, Publish, RefCount, Replay
 反压操作，用于增加特殊的流程控制策略的操作符
+
+
+
+辅助操作符列表
+用于处理Observable的操作符，例如延迟、定时等。
+
+名称	解析
+materialize()	        将Observable转换成一个通知列表
+dematerialize()	        将上面的结果逆转回一个Observable
+timestamp()	            给Observable发射的每个数据项添加一个时间戳
+serialize()	            强制Observable按次序发射数据并且要求功能是完好的
+cache()	                记住Observable发射的数据序列并发射相同的数据序列给后续的订阅者
+observeOn()	            指定观察者观察Observable的调度器
+subscribeOn()	        指定Observable执行任务的调度器
+doOnEach()	            注册一个动作，对Observable发射的每个数据项使用
+doOnCompleted()	        注册一个动作，对正常完成的Observable使用
+doOnError()	            注册一个动作，对发生错误的Observable使用
+doOnTerminate()	        Observable终止之前会被调用，无论是正常还是异常终止
+doAfterTerminate	    终止发送时候调用
+doOnSubscribe()	        注册一个动作，在观察者订阅时使用
+doOnUnsubscribe()	    注册一个动作，在观察者取消订阅时使用
+doOnNext()	            在onNext前执行
+doAfterNext()	        在onNext之后执行
+doOnLifecycle	        可以在订阅之后 设置是否取消订阅
+doFinally	            在最后执行
+finallyDo()	            注册一个动作，在Observable完成时使用
+delay()	                延时发射Observable的结果
+delaySubscription()	    延时处理订阅请求
+timeInterval()	        转换获取数据发送的时间间隔
+using()	                创建一个只在Observable生命周期存在的资源
+single()	            强制返回单个数据，否则抛出异常
+singleOrDefault()	    如果Observable完成时返回了单个数据，就返回它，否则返回默认数据
+toFuture(),toIterable(),toList()	将Observable转换为其它对象或数据结构
+
+
+transform 转换
+强大的内部转换功能，让你可以做到要什么就是什么。
+map()：          进行对象转换，不会创建新的Observable。
+flatMap()：      也是进行对象转换，会创建新的Observable。
+buffer()：      缓冲区，缓冲指定的Observable包装成新的Observable发射。
+toList()：       将单个的对象转换为集合。
+
+

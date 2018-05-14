@@ -3,6 +3,11 @@
 简单来说zip操作符就是合并多个数据流，
 然后发送(Emit)最终合并和的数据流。
 
+
+###########
+###########
+###########
+
 zip操作符实际案例
 需求描述：
 
@@ -59,3 +64,54 @@ zip操作符实际案例
                     }
                 });
                 //最后处理最终的数据。
+
+
+############
+
+虽然在后台有两次请求，但是在前台，我们希望用户打开这个页面，然后等待加载，然后显示。用户只有一次等待加载的过程。
+所以说，我们需要等待这两个请求都返回结果了，再开始显示数据
+
+“Retrofit对Observable的支持使得它可以很简单的将多个REST请求结合起来。比如我们有一个请求是获取照片的，还有一个请求是获取元数据的，我们就可以将这两个请求并发的发出，并且等待两个结果都返回之后再做处理：
+
+Observable.zip(
+    service.getUserPhoto(id),
+    service.getPhotoMetadata(id),
+    (photo, metadata) -> createPhotoWithData(photo, metadata))
+    .subscribe(photoWithData -> showPhoto(photoWithData));
+”
+
+文中只是简短的提到了一下，看了你也不知道该如何用。这篇文章就来进一步解释一下。
+
+zip操作符其实就是通过Observable.zip()方法把多个Observable组合成新的Observable，这个新的Observable对应的数据流由call方法决定：
+
+Observable<UserAndEvents> combined = Observable.zip(userObservable, eventsObservable, new Func2<JsonObject, JsonArray, UserAndEvents>() {
+  @Override
+  public UserAndEvents call(JsonObject jsonObject, JsonArray jsonElements) {
+    return new UserAndEvents(jsonObject, jsonElements);
+  }
+});
+这里的UserAndEvents是我们自己定义的，目的是把原来的两个结果的信息柔和在一个对象中，毕竟新的Observable也只能返回一次。UserAndEvents定义如下：
+
+public class UserAndEvents {
+  public UserAndEvents(JsonObject user, JsonArray events) {
+    this.events = events;
+    this.user = user;
+  }
+
+  public JsonArray events;
+  public JsonObject user;
+}
+最后我们调用新组合的combined Observable的subscribe方法：
+
+combined.subscribe(new Subscriber<UserAndEvents>() {
+          ...
+          @Override
+          public void onNext(UserAndEvents o) {
+            // You can access the results of the
+            // two observabes via the POJO now
+          }
+        });
+
+
+
+

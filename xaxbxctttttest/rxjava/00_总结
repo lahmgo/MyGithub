@@ -1,0 +1,61 @@
+
+需要思考的三个问题：
+操作符 顺序执行 还是并发执行？
+执行的时间（生命周期）
+执行所在的线程
+
+
+最大的两个特点：事件流操作，异步
+
+
+观察者模式缺点：
+不知道何时结束
+没有错误通知
+
+
+适用场景：
+多层嵌套
+复杂逻辑
+响应UI
+线程切换
+
+
+
+##############
+
+merge(o1,02)        //将多个异步合并为一个
+concat(o1,o2)       //one by one emit!
+
+
+
+
+
+
+场景：
+上传图片            zip
+多个接口都返回数据才做某件事，比如hide loading   zip
+整合数据            combineLatest
+获取验证码倒计时
+出错重试            retryWhen
+三级缓存            concat+takeFirst
+多异步请求连续调用    flatMap
+
+
+
+
+多异步请求连续调用
+这种场景其实也很常见，我们做用户头像编辑的使用，一般就会有三个请求需要连续调用：
+请求头像上传的地址
+上传头像
+更新用户信息
+
+在平时的代码里，我们需要一步步callback嵌套下来，代码冗长太难看，而且不好维护，使用RxJava链式调用处理代码逻辑就会非常清晰
+MyService myService = retrofit.create(MyService.class);
+myService.getUploadUrl()
+        .flatMap(this::uploadImageTask)
+        .flatMap(this::updateUserInfo)
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(this::updateUI, this::showError)
+
+

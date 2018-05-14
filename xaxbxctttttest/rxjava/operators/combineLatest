@@ -1,0 +1,138 @@
+
+
+顺序执行 还是 并发执行？
+
+当两个数据源的数据，需要做一个整合的时候，返回整合之后的数据
+
+比如：一个是学生列表，一个是分数列表，把两个列表的数据做一个匹配，然后返回学生的分数列表
+
+
+
+################
+################
+################
+
+
+combineLatest 操作符用来将多个Observable发射的数据组装起来然后在发射. 通过Func类来组装多个Observable发射的数据, 等到最后一个Observable发射数据了, 然后把所有发射的数据交给Fun进行组合, 然后把组合后的数据发射出去.
+
+看到网上绝大部分都是用 combineLatest 来做Android表单的校验, 总感觉有点大材小用. 如只有表单都只有值了了, 提交按钮才可用:
+
+    Observable<CharSequence> etFeedbackInputObservable = RxTextView.textChanges(mEditFeedbackInput).skip(1);
+    Observable<CharSequence> etFeedbackEmailObservable = RxTextView.textChanges(mEditFeedbackEmail).skip(1);
+    Observable.combineLatest(etFeedbackInputObservable, etFeedbackEmailObservable, new Func2<CharSequence, CharSequence, Boolean>() {
+        @Override
+        public Boolean call(CharSequence charSequence, CharSequence charSequence2) {
+            boolean inputValid = !TextUtils.isEmpty(charSequence);
+            boolean emailValid = !TextUtils.isEmpty(charSequence2);
+            return inputValid && emailValid;
+        }
+    }).subscribe(new Observer<Boolean>() {
+        @Override
+        public void onCompleted() {
+            Logger.d("onCompleted");
+        }
+
+        @Override
+        public void onError(Throwable e) {
+            Logger.e("onError-->" + e.toString());
+        }
+
+        @Override
+        public void onNext(Boolean aBoolean) {
+            //让提交表单可以单击
+            mButtonSendFeedback.setEnabled(aBoolean);
+        }
+    });
+
+在实际的项目开发中, combineLatest操作除了可以做一些简单的表单校验, 还可以做更加复杂的业务场景, 最重要的是遇到了这种场景能够用RxJava操作符来解决.
+
+再上家公司有这样一个业务场景: 一个用户查看自己的订单列表(该用户是艺术家在平台上卖艺术品的), 界面除了展示订单的基本信息, 还需要在Item的底部展示是哪个用户购买的(展示购买者的头像和名字), 但是后台返回的JSON数据对应的Bean如下所示 :
+
+public class JsonOrderPage<Order> {
+    public List<Order> data;
+    public Paging paging;
+}
+
+似乎感觉也没什么, 但是后台返回的Order对象里对于购买者的信息只有购买者的id, 但是界面上需要显示购买者的名字和头像. 说白了需要根据购买者的id来获取购买者的信息. 如果后端返回的仅仅是个List就好了, 那就用flatMap操作符很好的解决了. 当然最直观的解决方式就是for循序环, 如下所示:
+
+Observable<JsonOrderPage> observableUser = xxx;
+observableJsonOrderPage.flatMap(new Func1<JsonOrderPage, Observable<JsonOrderPage>>() {
+    @Override
+    public Observable<JsonOrderPage> call(JsonOrderPage page) {
+        List<Order> orders = page.getData();
+        for (Order order : orders) {
+            //同步请求获取购买者的信息
+            User buyer = userApi.getUserInfoById(order.getBuyer().getBuyerId());
+            //把获取的购买者信息赋值给Order
+            order.setBuyer(buyer);
+        }
+    }
+})
+
+虽然实现了功能, 但是总觉得不爽, 都用了RxJava这么牛逼的框架, 还要用for循环操作. 有没有比较优雅的方式来实现这种需求呢?
+
+这种需求就是 对A对象上的某个List属性进行RxJava操作, 然后把操作的结果再重新赋给原来的A对象.
+
+我们知道对A对象的List进行操作, RxJava操作后返回的就是List, 无法获取原来的A对象, 除非我们先获取A对象, 然后通过变量保存下, 当处理完List后,把最终的List赋值给A对象, 这种方法还不如第一种呢? 我想的是有没有一种途径全程用RxJava操作符来做.
+
+这种需求还是很多的, 比如返回一个用户对象(User), 里面有个List属性表示他的好友, 但是关于好友的信息只有id. 界面展示的他的好友信息.
+
+类似这样的需求, 需要对数据的某个子数据进行单独处理, 可以使用combineLatest来优雅的实现 :
+
+userApi = ApiServiceFactory.createService(UserApi.class);
+//获取用户信息
+userApi.fetchUserInfo(null)
+        .flatMap(new Func1<User, Observable<User>>() {
+            @Override
+            public Observable<User> call(User user) {
+                printLog(tvLogs, "----fetch a user---- \n", getUserString(user));
+
+                return fetchFriendsInfo(user);
+            }
+        })
+        .subscribeOn(Schedulers.io())
+        .observeOn(AndroidSchedulers.mainThread())
+        .subscribe(new Action1<User>() {
+            @Override
+            public void call(User user) {
+                printLog(tvLogs, "----process his friends by id---- \n", getUserString(user));
+            }
+        }, new Action1<Throwable>() {
+            @Override
+            public void call(Throwable throwable) {
+                throwable.printStackTrace();
+            }
+        });
+
+
+
+//这个方法才是实现的核心
+private Observable<User> fetchFriendsInfo(User user) {
+
+    //保存User的数据
+    Observable<User> observableUser = Observable.just(user);
+
+    //对User的好友列表进行单独处理
+    Observable<List<User>> observableUsers = Observable.from(user.getFriends())
+            .flatMap(new Func1<User, Observable<User>>() {
+                @Override
+                public Observable<User> call(User user) {
+                    //根据好友ID获取更完整的信息
+                    return userApi.fetchUserInfo(user.getId() + "");
+                }
+            })
+            .toList();
+
+    //对用户User信息和他的好友信息进行合并.
+    return Observable.combineLatest(observableUser, observableUsers, new Func2<User, List<User>, User>() {
+        @Override
+        public User call(User user, List<User> users) {
+            user.setFriends(users);
+            return user;
+        }
+    });
+}
+
+上面的代码还是很简单的, 注释也比较详细. 大致的意思就是把User信息分为两个部分:
+
+一部分是User的基本信(Observable<User>), 一部分是User好友列表(Observable<List<User>>) 然后把两个最终数据进行组合就是我们最终需要的数据了.

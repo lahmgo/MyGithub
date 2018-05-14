@@ -1,0 +1,67 @@
+
+
+
+merge+distinct 去多个数据源的并集
+
+merge操作符也是合并多个被观察者，但他们合并后是按照时间线并行执行
+可以使用mergeArray来合并多个被观察者
+
+使用concat和merge操作符时，如果遇到其中一个被观察者发出onError事件则会马上终止其他被观察者的事件，
+    如果希望onError事件推迟到其他被观察者都结束后才触发，可以使用对应的concatDelayError或者mergeDelayError操作符，比如：
+
+
+多个异步完成之后，操作
+
+##########
+##########
+##########
+
+
+merge()使用：服务端和本地都有相关数据，汇总展示。使用merge()对应的事件顺序是无序的，谁先产生了谁就先发送！
+
+    Observable<String> just = Observable.just("S", "O", "S")
+            .subscribeOn(Schedulers.newThread())
+            .doOnNext(new Action1<String>() {
+                @Override
+                public void call(String s) {
+                    SystemClock.sleep(20);
+                }
+            });
+
+    Observable<String> just1 = Observable.just("S","T","R").subscribeOn(Schedulers.newThread())
+            .doOnNext(new Action1<String>() {
+                @Override
+                public void call(String s) {
+                    SystemClock.sleep(20);
+                }
+            });
+
+    Observable.merge(just1, just)
+            .subscribeOn(Schedulers.newThread())
+            .distinct()
+            .subscribe(new Action1<String>() {
+                @Override
+                public void call(String s) {
+                    Log.e(TAG, "call: " + s);
+                }
+            });
+
+
+ E/MainActivity: call: S
+ E/MainActivity: call: T
+ E/MainActivity: call: R
+ E/MainActivity: call: O
+//或者这样
+ E/MainActivity: call: S
+ E/MainActivity: call: T
+ E/MainActivity: call: O
+ E/MainActivity: call: R
+
+
+
+
+
+
+
+
+

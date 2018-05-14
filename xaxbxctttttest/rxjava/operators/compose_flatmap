@@ -1,0 +1,77 @@
+
+
+Transformer实际上就是一个Func1<Observable<T>, Observable<R>>，
+        换言之就是：可以通过它将一种类型的Observable转换成另一种类型的Observable，和调用一系列的内联操作符是一模一样的。
+
+Transformer+compose可以完成对数据流系列操作对复用
+Transformer+compose可以完成对数据流系列操作对复用
+Transformer+compose可以完成对数据流系列操作对复用
+
+
+compose将一组操作符重用于多个数据流中呢？
+        例如，因为希望在工作线程中处理数据，然后在主线程中处理结果，所以我会频繁使用subscribeOn()和observeOn()。
+
+    protected <T> ObservableTransformer<T, T> applyObservableAsync() {
+        return new ObservableTransformer<T, T>() {
+            @Override
+            public ObservableSource<T> apply(Observable<T> upstream) {
+                return upstream.subscribeOn(Schedulers.io())
+                        .observeOn(AndroidSchedulers.mainThread());
+            }
+        };
+    }
+
+
+
+
+不同点在于compose()操作符拥有更高层次的抽象概念：它操作于整个数据流中，不仅仅是某一个被发送的事件。具体如下：
+
+compose()是唯一一个能够从数据流中得到原始Observable<T>的操作符
+        所以，那些需要对整个数据流产生作用的操作（比如，subscribeOn()和observeOn()）需要使用compose()来实现。
+        相较而言，如果在flatMap()中使用subscribeOn()或者observeOn()，那么它仅仅对在flatMap()中创建的Observable起作用，而不会对剩下的流产生影响
+
+当创建Observable流的时候，compose()会立即执行，犹如已经提前写好了一个操作符一样，
+        而flatMap()则是在onNext()被调用后执行，onNext()的每一次调用都会触发flatMap()，
+        也就是说，flatMap()转换每一个事件，而compose()转换的是整个数据流。
+
+因为每一次调用onNext()后，都不得不新建一个Observable，所以flatMap()的效率较低。
+        事实上，compose()操作符只在主干数据流上执行操作
+
+
+#############
+#############
+#############
+
+
+Transformer 能够将一个 Observable/Flowable/Single/Completable/Maybe 对象转换成另一个 Observable/Flowable/Single/Completable/Maybe 对象，和调用一系列的内联操作符是一模一样的。
+举个简单的例子，写一个transformer()方法将一个发射整数的Observable转换为发射字符串的Observable。
+public static <String> ObservableTransformer<Integer, java.lang.String> transformer() {
+        return new ObservableTransformer<Integer, java.lang.String>() {
+            @Override
+            public ObservableSource<java.lang.String> apply(@NonNull Observable<Integer> upstream) {
+                return upstream.map(new Function<Integer, java.lang.String>() {
+                    @Override
+                    public java.lang.String apply(@NonNull Integer integer) throws Exception {
+                        return java.lang.String.valueOf(integer);
+                    }
+                });
+            }
+        };
+    }接下来是使用transformer()方法，通过标准的RxJava的操作。
+Observable.just(123,456)
+       .compose(transformer())
+       .subscribe(new Consumer<String>() {
+              @Override
+               public void accept(@io.reactivex.annotations.NonNull String s) throws Exception {
+                   System.out.println("s="+s);
+                    }
+                });最后打印了二次，分别是
+s=123
+s=456通过这个例子，可以简单和直观地了解到Transformer的作用。
+其实，在大名鼎鼎的图片加载框架 Glide 以及 Picasso 中也有类似的transform概念，能够将图形进行变换
+
+
+
+
+
+

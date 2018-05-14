@@ -1,0 +1,108 @@
+
+
+对象的唯一性判断是通过复写equal()和hashCode()来实现的
+去重对象
+
+
+
+############
+############
+############
+
+
+
+统计集合中年龄大于20的学生姓名（年龄姓名一致的视为同一个！）
+首先当然是创建Observable！
+
+    //初始化数据
+    Student s1 = new Student(19, "xiaoqiang0");
+    Student s2 = new Student(20, "xiaoqiang1");
+    Student s3 = new Student(21, "xiaoqiang2");
+    Student s4 = new Student(22, "xiaoqiang3");
+    Student s5 = new Student(23, "xiaoqiang4");
+    Student s6 = new Student(24, "xiaoqiang5");
+    Student s7 = new Student(25, "xiaoqiang6");
+    Student s8 = new Student(25, "xiaoqiang5");
+    students = new ArrayList<>();
+    students.add(s1);
+    students.add(s2);
+    students.add(s3);
+    students.add(s1);
+    students.add(s4);
+    students.add(s5);
+    students.add(s6);
+    students.add(s7);
+    students.add(s8);
+
+        Observable.just(students)//创建Observable
+            .flatMap(new Func1<ArrayList<Student>, Observable<Student>>() {
+                @Override
+                public Observable<Student> call(ArrayList<Student> students) {
+                    //变换为新的Observable
+                    return Observable.from(students);
+                }
+            })
+            //过滤掉年龄和姓名相同的对象
+            .distinct()
+            //过滤掉年龄小于20的对象
+            .filter(new Func1<Student, Boolean>() {
+                @Override
+                public Boolean call(Student student) {
+                    return student.getAge() >= 20;
+                }
+
+            })
+            //将事件对象由Student 转换为 String
+            .map(new Func1<Student, String>() {
+                @Override
+                public String call(Student student) {
+                    return student.getName();
+                }
+            })
+            .doOnUnsubscribe(new Action0() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "call: 取消订阅了！！");
+
+                }
+            })
+            //订阅
+            .subscribe(new Subscriber<String>() {
+                @Override
+                public void onCompleted() {
+
+                }
+
+                @Override
+                public void onError(Throwable e) {
+
+                }
+
+                @Override
+                public void onNext(String s) {
+                    Log.e(TAG, "onNext: " + s);
+                }
+            });
+
+
+E/MainActivity: onNext: xiaoqiang1
+E/MainActivity: onNext: xiaoqiang2
+E/MainActivity: onNext: xiaoqiang3
+E/MainActivity: onNext: xiaoqiang4
+E/MainActivity: onNext: xiaoqiang5
+E/MainActivity: onNext: xiaoqiang6
+E/MainActivity: onNext: xiaoqiang5
+E/MainActivity: call: 取消订阅了！！
+PS:至于这里对象的唯一性判断是通过复写equal()和hashCode()来实现的！
+
+@Override
+public boolean equals(Object o) {
+    return o instanceof Student && this.getAge() == ((Student) o).getAge() && this.getName().equals(((Student) o).getName());
+}
+
+@Override
+public int hashCode() {
+    return Arrays.hashCode(new Object[]{getAge(), getName()});
+}
+
+

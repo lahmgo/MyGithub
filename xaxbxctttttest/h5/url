@@ -1,10 +1,26 @@
 
 
+TBS+VasSonic
+https://x5.tencent.com/tbs/guide/sdkInit.html
+https://github.com/Tencent/VasSonic
 
+详解
+https://blog.csdn.net/carson_ho/article/details/52693322
+
+WebView与JS交互
+https://blog.csdn.net/carson_ho/article/details/64904691
+
+美团关于WebView的分析
+https://tech.meituan.com/WebViewPerf.html
 
 http://zjutkz.net/2016/04/17/%E5%A5%BD%E5%A5%BD%E5%92%8Ch5%E6%B2%9F%E9%80%9A%EF%BC%81%E5%87%A0%E7%A7%8D%E5%B8%B8%E8%A7%81%E7%9A%84hybrid%E9%80%9A%E4%BF%A1%E6%96%B9%E5%BC%8F/
 
+webview漏洞/防范，模拟JS攻击
+https://blog.csdn.net/carson_ho/article/details/64904635
 
+缓存机制/加载替换资源
+https://blog.csdn.net/carson_ho/article/details/71402764
 
-
-
+VasSonic详解剖析
+https://juejin.im/entry/599e2100518825243445a07d
+https://blog.csdn.net/xiatiandefeiyu/article/details/79288588

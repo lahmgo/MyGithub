@@ -1,0 +1,13 @@
+
+
+VasSonic与X5内核的关系？
+1   VasSonic是一个专注于提升首屏加载速度的框架，在WebView内核的上层，支持系统原生内核和TBS-X5内核;
+2   X5内核解决了Android系统WebView碎片化严重的问题，且进行了大量优化，
+    目前手Q和微信都是有X5内核，VasSonic和X5内核搭配使用效果更佳。
+
+#############
+
+清除回推键
+
+clearHistory 失效的解决方案
+在onPageFinished之后再去清除缓存

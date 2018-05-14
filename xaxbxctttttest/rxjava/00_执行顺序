@@ -1,0 +1,159 @@
+
+
+
+通过Log可以看到一个事件的订阅过程。
+首先回调Subscriber.onStart()表明Observable和Subscriber已经建立了连接，但是这个时候事件还没有开始发射。
+然后是 doOnRequest()和doOnSubscribe(),这个时候事件也没有开始发射。
+接着是doOnEach()和doOnNext()和onNext(),这个时候事件正式发射了。
+最后发射完了，就是onCompleted、doOnTerminate(),然后取消订阅释放资源doOnUnsubscribe()
+
+onStart() 总是在 subscribe 所发生的线程中被调用，而不能指定线程，
+          发生错误不会回调onError方法。他是整个时间传递之前产生的方法。
+
+######
+
+
+
+显示因此loading框：   使用 doOnSubscribe 和 doOnUnsubscribe
+
+doOnTerminate 和 doAfterTerminate 一般情况下的调用时机：
+正常流程                 * doOnTerminate 是在onCompleted或者onError 调用 之前 调用
+一个或多个onNext -> doOnTerminate -> onCompleted -> doAfterTerminate
+
+onNext之前出现异常时      * doAfterTerminate 是在onCompleted或者onError 调用 之后 调用
+doOnTerminate -> onError -> doAfterTerminate
+
+onNext中中中中出现异常时  * onNext 直接调用了onError，在这个时候 doOnTerminate 和 doAfterTerminate 都将不会执行
+一个或多个onNext -> onError
+
+
+###########
+###########
+###########
+
+
+对于Observable，这里有一系列的回调方法，作用在不同的时期，其中常用的是doOnSubscribe()和doOnNext()。
+另外在Subscriber里，还有一个onStart()的方法！
+callBack.png
+Observable.just("L", "O", "V", "E")
+            .doOnSubscribe(new Action0() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "call: doOnSubscribe");
+
+                }
+            })
+            .doOnUnsubscribe(new Action0() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "call: doOnUnsubscribe");
+                }
+            })
+            .doOnEach(new Subscriber<String>() {
+                @Override
+                public void onCompleted() {
+                    Log.e(TAG, "doOnEach: onCompleted");
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    Log.e(TAG, "doOnEach: onError");
+                }
+
+                @Override
+                public void onNext(String s) {
+                    Log.e(TAG, "doOnEach: onNext:"+s);
+                }
+            })
+            .doOnNext(new Action1<String>() {
+                @Override
+                public void call(String s) {
+                    Log.e(TAG, "call: doOnNext");
+                }
+            })
+            .doOnRequest(new Action1<Long>() {
+                @Override
+                public void call(Long aLong) {
+                    Log.e(TAG, "call: doOnRequest");
+                }
+            })
+            .doOnTerminate(new Action0() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "call: doOnTerminate");
+                }
+            })
+            .doAfterTerminate(new Action0() {
+                @Override
+                public void call() {
+                    Log.e(TAG, "call: doAfterTerminate");
+                }
+            })
+            .subscribe(new Subscriber<String>() {
+                @Override
+                public void onCompleted() {
+                    Log.e(TAG, "subscribe->call: onCompleted");
+                }
+
+                @Override
+                public void onError(Throwable e) {
+                    Log.e(TAG, "subscribe->call: onError");
+                }
+
+                @Override
+                public void onNext(String s) {
+                    Log.e(TAG, "subscribe->call: onNext:" + s);
+                }
+            });
+
+E/MainActivity: subscribe->call: onStart:
+E/MainActivity: call: doOnRequest
+E/MainActivity: call: doOnSubscribe
+E/MainActivity: doOnEach: onNext:L
+E/MainActivity: call: doOnNext
+E/MainActivity: subscribe->call: onNext:L
+E/MainActivity: doOnEach: onNext:O
+E/MainActivity: call: doOnNext
+E/MainActivity: subscribe->call: onNext:O
+E/MainActivity: doOnEach: onNext:V
+E/MainActivity: call: doOnNext
+E/MainActivity: subscribe->call: onNext:V
+E/MainActivity: doOnEach: onNext:E
+E/MainActivity: call: doOnNext
+E/MainActivity: subscribe->call: onNext:E
+E/MainActivity: doOnEach: onCompleted
+E/MainActivity: call: doOnTerminate
+E/MainActivity: subscribe->call: onCompleted
+E/MainActivity: call: doOnUnsubscribe
+E/MainActivity: call: doAfterTerminate
+通过Log可以看到一个事件的订阅过程。
+首先回调Subscriber.onStart()表明Observable和Subscriber已经建立了连接，但是这个时候事件还没有开始发射。
+然后是 doOnRequest()和doOnSubscribe(),这个时候事件也没有开始发射。
+接着是doOnEach()和doOnNext()和onNext(),这个时候事件正式发射了。
+最后发射完了，就是onCompleted、doOnTerminate(),然后取消订阅释放资源doOnUnsubscribe()。
+
+
+
+##########
+
+Rxjava中doOnTerminate 和 doAfterTerminate 一般情况下的调用时机：
+* doOnTerminate 是在onCompleted或者onError 调用 之前 调用
+* doAfterTerminate 是在onCompleted或者onError 调用 之后 调用
+
+以上的前提是：rxjava 订阅之后工作流是以下两种正常情况：
+
+一个或多个onNext -> doOnTerminate -> onCompleted -> doAfterTerminate
+
+或者 假如 onNext之前出现异常时，比如： 在map操作符中时，将不会到达onNext，直接调用onError
+
+doOnTerminate -> onError -> doAfterTerminate
+
+但是既然有正常工作流那就一定有一个不太常见的异常工作流：
+假如异常发生在 onNext 中，比如：从服务器获取到数据以后，在onNext里调用时出现空指针了，这时，onNext 便直接调用了onError，在这个时候 doOnTerminate 和 doAfterTerminate 都将不会执行，工作流如下：
+
+一个或多个onNext -> onError
+
+原来文章中显示隐藏加载框，我推荐使用 doOnSubscribe 和 doOnTerminate，但是像本文说的第三种工作流的情况，doOnTerminate将不执行，弹框将不会被hide掉。 事实也正是在我发现这个弹框的bug后，逐步实验验证才有了这篇文章。
+
+现在显示隐藏加载框，我推荐使用 doOnSubscribe 和 doOnUnsubscribe ，经过实验验证，doOnUnsubscribe 在以上三种情况（即 onCompleted 和 两种异常导致的 onError ）下，都会调用
+
