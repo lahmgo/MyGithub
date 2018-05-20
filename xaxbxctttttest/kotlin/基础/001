@@ -1,0 +1,46 @@
+
+
+
+
+for (x in 0 until size)循环等价于
+for (x in 0..size-1)            正序
+
+
+for (i in 100 downTo 1 step 2) 倒序，步长2
+
+#############
+
+val list = arrayListOf("10", "11", "1001")
+for ((index, element) in list.withIndex()) { // 通过索引遍历集合
+    println("$index: $element")
+}
+（上面的）代码输出了你所期待的（结果）：
+
+0: 10
+1: 11
+2: 1001
+
+in关键字来遍历一个返回或者一个集合。你也可以使用in来检查一个值是否属于（某个）范围或集合
+
+
+使用in操作符来检查一个值是否在某个范围内，或者相反的，!in（操作符）来检查一个值是否不再某个范围内。以下（演示了）你可以如何使用in来检查一个字符是否在某个字符范围内：
+
+fun isLetter(c: Char) = c in 'a'..'z' || c in 'A'..'Z'
+fun isNotDigit(c: Char) = c !in '0'..'9'
+>>> println(isLetter('q'))
+true
+>>> println(isNotDigit('x'))
+true
+
+
+in和!in操作符在when表达式中也是有效的：
+
+fun recognize(c: Char) = when (c) {
+  in '0'..'9' -> "It's a digit!"    // 1 判断值是否在0到9的范围内
+  in 'a'..'z', in 'A'..'Z' -> "It's a letter!"    // 2 你可以合并多个范围
+  else -> "I don't know…"
+}
+>>> println(recognize('8'))
+It's a digit!
+
+
