@@ -1,0 +1,42 @@
+
+
+
+adb shell monkey -p com.xingyun.great.assistant.mi 10000 -v –throttle 300 –pct-touch 30 –pct-motion 20 –pct-nav 20 –pct-majornav 15  –pct-appswitch 5 –pct-anyevent 5 –pct-trackball 0 –pct-syskeys 0 > /Users/ken/Documents/lahm_go/test/error.txt
+
+
+
+options为可选参数，如果不指定options参数monkey将启动在一个安静的(non-verbose)模式（也就是无反馈的模式）,并将发送事件到任何包安装在你的目标环境的安装包上。  option参数大致可以分为五类：  * 基本配置参数  * 事件类型参数  * 约束性参数  * 调试类参数  * 隐藏的参数
+分类	参数	说明
+基本配置参数	–help	输出monkey的使用指南
+	-v	表示打印信息的级别，可以在命令行中出现多次,每一个-v选项都会增加monkey向命令行打印输出的详细级别。默认的0只会打印启动信息、测试完成信息和最终的结果信息。级别1会打印测试执行的一些信息，级别2会打印最详细的信息。
+事件类型参数	-s <随机数>	为monkey内部使用的伪随机数生成的种子，如果用相同的随机数种子重新执行monkey，则会生成相同的事件
+	–throttle <毫秒数>	为monkey内部使用的伪随机数生成的种子，如果用相同的随机数种子重新执行monkey，则会生成相同的事件
+	–pct-touch<百分比>	设置触控事件生成的比例
+	–pct-motion<百分比>	设置滑动事件的生成比例
+	–pct-trackball <百分比>	设置轨迹事件的比例
+	–pct-nav <百分比>	设置“基本”的导航事件的生成比例。导航事件是指模拟方向性设备输入向上/下/左/右导航操作
+	–pct-majornav <百分比>	设置轨迹事件的比例
+	–pct-syskeys <百分比>	设置系统按键消息的比例，系统中保留的按键消息，如：首页（home）、后退（back）、拨号、挂断、音量控制键
+	–pct-appswitch <百分比>	设置启动活动的事件比例，每隔一段随机时间，monkey就会调用startActivity()函数来尽可能地覆盖待测应用的界面
+	–pct-anyevent <百分比>	设置其他事件的比例，包括普通的按键消息，设备上一些不常用的按键等
+约束性参数	-p<包名>	使用这个参数可以指定一个或几个包名，monkey就只会测试这些包中的活动，同时设置多个包名时，每个包需要用“-p”参数制定
+	-c<意图的种类>	定意图的种类，这样monkey只会启动可以处理的这些种类的意图活动,如果没有设定这个选项，monkey只会启动列有Intent.CATEGORY_LAUNCHER和Intent.CATEGORY_MONKEY的活动
+调试类参数	–dbg-no-events	指定了这个选项，monkey只会启动待测程序，不会发送消息
+	–hprof	如果指定了这个选项，monkey会在发送事件的前后生成性能报告
+	–ignore-crashes	一般情况下，monkey会在待测应用奔溃或者发生未处理异常后停止运行，如果指定了这个选项，会继续向系统发送消息，直到指定个数的消息发送完毕
+	–ignore-timeouts	通常情况下,当应用程出现“应用程序没有响应”对话框monkey会停止，如果指定这个选项,Monkey将继续向系统发送事件,直到完成
+	–ignore-security-exceptions	通常情况下,当应用程序发生权限错误（如启动一个需要某些许可的Activity）如果指定这个选项,monkey将继续向系统发送事件,直到完成
+	–kill-process-after-error	这个选项可以通知系统当应用发生错误时杀掉进程
+	–monitor-native-crashes	监控和报告Android系统中本机代码的崩溃事件，如果–kill-process-after-error设置,系统将停止
+	–wait-dbg	启动monkey后，先中断其运行，等待调试器附加上来
+隐藏的参数类型	–pck-blacklist-file<黑名单文件>	设置该选项后，monkey将不测试该名单中的包，文档中每包名写一行
+	–pck-whitelist-file<白名单文件>	设置该选项后，monkey只测试该名单中的包，文档中每包名写一行
+	–f<脚本文件>	设置monkey执行自定义脚本文件
+
+
+
+
+
+
+
+

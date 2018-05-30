@@ -1,0 +1,19 @@
+
+
+7.0-7.1 https有bug，无法支持
+https://issuetracker.google.com/issues/37122132
+https://stackoverflow.com/questions/39133437/sslhandshakeexception-handshake-failed-on-android-n-7-0
+
+
+马甲包，url schema 拦截调整，会出现多个
+
+
+
+
+
+
+
+
+
+
+
