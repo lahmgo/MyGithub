@@ -1,0 +1,39 @@
+
+
+
+BigDecimal转float，就直接转float，不要先转String,再转float,会精度丢失
+
+低转高，会补位，可能会精度丢失
+高转低，强制转换，不会丢失精度
+
+format/BigDecimal 不会直接接收float
+如果直接给float，就会精度丢失，可以float-String-BigDecimal-double
+
+项目不要使用float
+
+Number.doubleValue 会精度丢失
+toString-BigDecimal-double
+
+Float 加减乘除   会精度丢失
+float 加减乘除   会精度丢失
+比如2.1f+1.89f 会精度丢失
+        int a = 3;
+        double b = 0.03;
+        double c = 0.03;
+        //不会丢失精度
+        double d = add(add(a, b),c);
+        System.out.println("first d:" + d);
+        //会丢失精度
+        d = a+b+c;
+
+
+
+
+
+
+
+
+
+
+
+

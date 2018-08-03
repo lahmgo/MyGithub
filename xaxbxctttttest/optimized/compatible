@@ -8,7 +8,11 @@ https://stackoverflow.com/questions/39133437/sslhandshakeexception-handshake-fai
 马甲包，url schema 拦截调整，会出现多个
 
 
+部分系统webview 由于内核升级，导致闪退
+使用TBS代替系统WebView
 
+module的jar包，如果想让依赖的项目可以使用自己的Jar
+Gradle中需要使用api 而不能使用implementation
 
 
 
